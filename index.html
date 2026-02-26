@@ -420,7 +420,7 @@
           nota: r.nota || ""
         }));
 
-        $("status").textContent = `Listo. ${allRows.length} registro(s) cargado(s).`;
+        $("status").textContent = `${allRows.length} registro(s) cargado(s).`;
         render();
       }catch(err){
         $("status").textContent = "❌ " + err.message;
@@ -496,4 +496,5 @@
     loadData();
   </script>
 </body>
+
 </html>
