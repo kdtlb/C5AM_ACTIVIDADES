@@ -180,12 +180,13 @@
       border:1px solid var(--stroke);
       border-radius: 16px;
       padding: 12px;
-      min-height: 140px; /* un poco más alto por actividad/nota */
+      min-height: 140px;
       background: #0d0d0f;
       position: relative;
       overflow: hidden;
     }
 
+    /* Ahora resaltamos MAÑANA (no hoy) */
     .day.today{
       border-color: rgba(255,43,43,.9);
       box-shadow: 0 0 0 3px rgba(255,43,43,.12);
@@ -241,7 +242,7 @@
       color: var(--muted);
       font-size: 12.5px;
       line-height: 1.25;
-      white-space: pre-wrap; /* respeta saltos de línea si pones notas largas */
+      white-space: pre-wrap;
     }
 
     .mono{
@@ -250,18 +251,18 @@
     }
 
     .footer{
-    margin-top:40px;
-    padding:20px;
-    text-align:center;
-    font-size:13px;
-    color:var(--muted);
-    border-top:1px solid var(--stroke);
-    background:#0b0b0c;
+      margin-top:40px;
+      padding:20px;
+      text-align:center;
+      font-size:13px;
+      color:var(--muted);
+      border-top:1px solid var(--stroke);
+      background:#0b0b0c;
     }
 
     .footer strong{
-    color:var(--red);
-    font-weight:700;
+      color:var(--red);
+      font-weight:700;
     }
   </style>
 </head>
@@ -284,7 +285,7 @@
     <div class="grid">
       <div class="card">
         <h2>
-          <span>Entrenamiento de hoy</span>
+          <span>Entrenamiento de mañana</span>
           <span class="badge" id="todayTag"><span class="tiny"></span> —</span>
         </h2>
 
@@ -305,7 +306,6 @@
           </div>
         </div>
 
-        <!-- NUEVO: actividad y nota -->
         <div class="status" style="margin-top:14px">
           <div><span class="mono">Actividad:</span> <span id="todayActivity">—</span></div>
           <div style="margin-top:6px"><span class="mono">Nota:</span> <span id="todayNote">—</span></div>
@@ -341,19 +341,18 @@
       <h2>Semana</h2>
       <div class="week" id="weekGrid"></div>
     </div>
-   </div>
-    <footer class="footer">
-    Desarrollado por <strong>Matías López Bertram</strong>  +59177178908 © 2026
-    </footer>
+  </div>
+
+  <footer class="footer">
+    Desarrollado por <strong>Matías López Bertram</strong> +59177178908 © 2026
+  </footer>
 
   <script>
     // =========================
-    // CONFIG
+    // CONFIG (SHEET ID CORRECTO)
     // =========================
     const SHEET_ID = "143l0Cj_HC3DKuRU8txP5Ul6-U3mCwIJJef5Sqsykh6g";
-
-    const SHEET_CSV_URL =
-      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+    const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
     const $ = (id) => document.getElementById(id);
     const DOW = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
@@ -446,25 +445,29 @@
     }
 
     function render(){
-      const todayDD = toDDMMYYYY(new Date());
-      $("todayTag").innerHTML = `<span class="tiny"></span> ${fmtHumanFromDDMMYYYY(todayDD)}`;
+      // =========================
+      // MOSTRAR MAÑANA (no hoy)
+      // =========================
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const targetDD = toDDMMYYYY(tomorrow);
 
-      const today = allRows.find(r => r.fecha === todayDD);
+      $("todayTag").innerHTML = `<span class="tiny"></span> MAÑANA • ${fmtHumanFromDDMMYYYY(targetDD)}`;
 
-      $("todayDate").textContent = today ? todayDD : "Sin sesión";
-      $("todayPlace").textContent = today?.lugar || "—";
-      $("todayCoach").textContent = today?.encargado || "—";
-      $("todayActivity").textContent = today?.actividad || "—";
-      $("todayNote").textContent = today?.nota || "—";
+      const target = allRows.find(r => r.fecha === targetDD);
 
+      $("todayDate").textContent = target ? targetDD : "Sin sesión";
+      $("todayPlace").textContent = target?.lugar || "—";
+      $("todayCoach").textContent = target?.encargado || "—";
+      $("todayActivity").textContent = target?.actividad || "—";
+      $("todayNote").textContent = target?.nota || "—";
+
+      // Semana mostrada (se mantiene igual)
       const monday = startOfWeekMonday(weekAnchor);
       const sunday = addDays(monday, 6);
 
-      const mondayDD = toDDMMYYYY(monday);
-      const sundayDD = toDDMMYYYY(sunday);
-
-      $("weekStart").textContent = mondayDD;
-      $("weekEnd").textContent = sundayDD;
+      $("weekStart").textContent = toDDMMYYYY(monday);
+      $("weekEnd").textContent = toDDMMYYYY(sunday);
 
       const weekMap = new Map();
       for(let i=0;i<7;i++){
@@ -489,7 +492,8 @@
         const row = weekMap.get(dateDD);
 
         const div = document.createElement("div");
-        div.className = "day" + (dateDD === todayDD ? " today" : "") + (!row ? " empty" : "");
+        // resaltamos MAÑANA
+        div.className = "day" + (dateDD === targetDD ? " today" : "") + (!row ? " empty" : "");
 
         div.innerHTML = `
           <div class="dow"><span class="bar"></span>${DOW[i]}</div>
