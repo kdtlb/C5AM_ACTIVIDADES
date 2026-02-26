@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>C5AM • Agenda</title>
+
+  <style>
+    :root{
+      --bg:#0b0b0c;
+      --card:#111113;
+      --stroke:#232326;
+      --txt:#ffffff;
+      --muted:#b9b9bd;
+      --red:#ff2b2b;
+      --red2:#b30000;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: var(--bg);
+      color: var(--txt);
+    }
+
+    .wrap{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 16px 60px;
+    }
+
+    .top{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:14px;
+    }
+
+    .brand h1{
+      margin:0;
+      font-size: 28px;
+      letter-spacing:.5px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .logo-dot{
+      width:10px;height:10px;border-radius:999px;
+      background: var(--red);
+      box-shadow: 0 0 0 4px rgba(255,43,43,.15);
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .btn{
+      border:1px solid var(--stroke);
+      background: transparent;
+      color: var(--txt);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight:700;
+      transition: .15s ease;
+      user-select:none;
+    }
+    .btn:hover{
+      border-color: rgba(255,255,255,.22);
+      transform: translateY(-1px);
+    }
+    .btn.primary{
+      background: var(--red);
+      border-color: var(--red);
+      color: #0b0b0c;
+    }
+    .btn.primary:hover{
+      background: #ff4b4b;
+      border-color: #ff4b4b;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    @media (max-width: 920px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      border:1px solid var(--stroke);
+      background: var(--card);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .card h2{
+      margin:0 0 12px;
+      font-size: 15px;
+      letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap:10px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--stroke);
+      color: var(--muted);
+      background: #0d0d0f;
+    }
+    .badge .tiny{
+      width:7px;height:7px;border-radius:999px;background:var(--red);
+    }
+
+    .kpis{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 600px){
+      .kpis{ grid-template-columns: 1fr; }
+    }
+
+    .kpi{
+      border:1px solid var(--stroke);
+      border-radius: 16px;
+      padding: 14px;
+      background: #0d0d0f;
+    }
+    .kpi .label{
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing:.3px;
+      text-transform: uppercase;
+    }
+    .kpi .value{
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .status{
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* Week grid */
+    .week{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:12px;
+    }
+    @media (max-width: 1000px){
+      .week{ grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 700px){
+      .week{ grid-template-columns: 1fr; }
+      .day{ width:100%; }
+    }
+
+    .day{
+      border:1px solid var(--stroke);
+      border-radius: 16px;
+      padding: 12px;
+      min-height: 140px; /* un poco más alto por actividad/nota */
+      background: #0d0d0f;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .day.today{
+      border-color: rgba(255,43,43,.9);
+      box-shadow: 0 0 0 3px rgba(255,43,43,.12);
+    }
+
+    .day.empty{ opacity: .55; }
+
+    .dow{
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .7px;
+      text-transform: uppercase;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .dow .bar{
+      width: 10px;
+      height: 10px;
+      background: var(--red);
+      border-radius: 3px;
+    }
+
+    .date{
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .place{
+      margin-top: 10px;
+      font-weight: 900;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .coach{
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .activity{
+      margin-top: 10px;
+      font-weight: 800;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .note{
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.25;
+      white-space: pre-wrap; /* respeta saltos de línea si pones notas largas */
+    }
+
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color:#fff;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <h1><span class="logo-dot"></span> C5AM • Agenda</h1>
+      </div>
+
+      <div class="controls">
+        <button class="btn" id="prevWeek">← Semana</button>
+        <button class="btn" id="thisWeek">Esta semana</button>
+        <button class="btn" id="nextWeek">Semana →</button>
+        <button class="btn primary" id="refresh">Actualizar</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>
+          <span>Entrenamiento de hoy</span>
+          <span class="badge" id="todayTag"><span class="tiny"></span> —</span>
+        </h2>
+
+        <div class="kpis">
+          <div class="kpi">
+            <div class="label">Fecha</div>
+            <div class="value" id="todayDate">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="label">Lugar</div>
+            <div class="value" id="todayPlace">—</div>
+          </div>
+
+          <div class="kpi">
+            <div class="label">Encargado</div>
+            <div class="value" id="todayCoach">—</div>
+          </div>
+        </div>
+
+        <!-- NUEVO: actividad y nota -->
+        <div class="status" style="margin-top:14px">
+          <div><span class="mono">Actividad:</span> <span id="todayActivity">—</span></div>
+          <div style="margin-top:6px"><span class="mono">Nota:</span> <span id="todayNote">—</span></div>
+        </div>
+
+        <div class="status" id="status">Cargando…</div>
+      </div>
+
+      <div class="card">
+        <h2>Resumen</h2>
+        <div class="kpis">
+          <div class="kpi">
+            <div class="label">Semana (inicio)</div>
+            <div class="value mono" id="weekStart">—</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Semana (fin)</div>
+            <div class="value mono" id="weekEnd">—</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Sesiones cargadas</div>
+            <div class="value"><span id="countWeek">0</span></div>
+          </div>
+        </div>
+
+        <div class="status">
+          Fuente: Google Sheet <span class="mono">actividades</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h2>Semana</h2>
+      <div class="week" id="weekGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // CONFIG
+    // =========================
+    const SHEET_ID = "143l0Cj_HC3DKuRU8txP5Ul6-U3mCwIJJef5Sqsykh6g";
+
+    const SHEET_CSV_URL =
+      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+
+    const $ = (id) => document.getElementById(id);
+    const DOW = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+
+    // ========= FECHAS EN DD-MM-YYYY =========
+    function pad2(n){ return String(n).padStart(2,"0"); }
+
+    function toDDMMYYYY(date){
+      const d = new Date(date);
+      return `${pad2(d.getDate())}-${pad2(d.getMonth()+1)}-${d.getFullYear()}`;
+    }
+
+    function startOfWeekMonday(date){
+      const d = new Date(date);
+      const day = d.getDay(); // 0 dom, 1 lun...
+      const diff = (day === 0 ? -6 : 1 - day);
+      d.setDate(d.getDate() + diff);
+      d.setHours(0,0,0,0);
+      return d;
+    }
+
+    function addDays(date, n){
+      const d = new Date(date);
+      d.setDate(d.getDate() + n);
+      return d;
+    }
+
+    function fmtHumanFromDDMMYYYY(ddmmyyyy){
+      const [dd,mm,yyyy] = ddmmyyyy.split("-").map(Number);
+      const dt = new Date(yyyy, mm-1, dd);
+      return dt.toLocaleDateString("es-BO", { weekday:"short", day:"2-digit", month:"short" });
+    }
+
+    function normalizeDDMMYYYY(fecha){
+      if(!fecha) return "";
+      const s = String(fecha).trim();
+      return (s.length > 10) ? s.slice(0,10) : s;
+    }
+
+    function parseCSV(text){
+      const lines = text.trim().split(/\r?\n/);
+      if(lines.length <= 1) return [];
+
+      const headers = lines[0].split(",").map(s => s.trim().toLowerCase());
+      const idx = {
+        fecha: headers.indexOf("fecha"),
+        lugar: headers.indexOf("lugar"),
+        encargado: headers.indexOf("encargado"),
+        actividad: headers.indexOf("actividad"),
+        nota: headers.indexOf("nota")
+      };
+
+      return lines.slice(1).map(line => {
+        const cols = line.split(",").map(s => s.trim());
+        return {
+          fecha: (idx.fecha>=0 ? cols[idx.fecha] : ""),
+          lugar: (idx.lugar>=0 ? cols[idx.lugar] : ""),
+          encargado: (idx.encargado>=0 ? cols[idx.encargado] : ""),
+          actividad: (idx.actividad>=0 ? cols[idx.actividad] : ""),
+          nota: (idx.nota>=0 ? cols[idx.nota] : "")
+        };
+      }).filter(r => r.fecha);
+    }
+
+    let allRows = [];
+    let weekAnchor = new Date();
+    weekAnchor.setHours(0,0,0,0);
+
+    async function loadData(){
+      $("status").textContent = "Cargando desde Google Sheets…";
+      try{
+        const res = await fetch(SHEET_CSV_URL, { cache:"no-store" });
+        if(!res.ok) throw new Error("No se pudo leer el CSV. Publica el Sheet en la web (CSV).");
+
+        const csv = await res.text();
+
+        allRows = parseCSV(csv).map(r => ({
+          fecha: normalizeDDMMYYYY(r.fecha),
+          lugar: r.lugar || "",
+          encargado: r.encargado || "",
+          actividad: r.actividad || "",
+          nota: r.nota || ""
+        }));
+
+        $("status").textContent = `Listo. ${allRows.length} registro(s) cargado(s).`;
+        render();
+      }catch(err){
+        $("status").textContent = "❌ " + err.message;
+      }
+    }
+
+    function render(){
+      const todayDD = toDDMMYYYY(new Date());
+      $("todayTag").innerHTML = `<span class="tiny"></span> ${fmtHumanFromDDMMYYYY(todayDD)}`;
+
+      const today = allRows.find(r => r.fecha === todayDD);
+
+      $("todayDate").textContent = today ? todayDD : "Sin sesión";
+      $("todayPlace").textContent = today?.lugar || "—";
+      $("todayCoach").textContent = today?.encargado || "—";
+      $("todayActivity").textContent = today?.actividad || "—";
+      $("todayNote").textContent = today?.nota || "—";
+
+      const monday = startOfWeekMonday(weekAnchor);
+      const sunday = addDays(monday, 6);
+
+      const mondayDD = toDDMMYYYY(monday);
+      const sundayDD = toDDMMYYYY(sunday);
+
+      $("weekStart").textContent = mondayDD;
+      $("weekEnd").textContent = sundayDD;
+
+      const weekMap = new Map();
+      for(let i=0;i<7;i++){
+        const dd = toDDMMYYYY(addDays(monday, i));
+        weekMap.set(dd, null);
+      }
+
+      let count = 0;
+      allRows.forEach(r=>{
+        if(weekMap.has(r.fecha)){
+          weekMap.set(r.fecha, r);
+          count++;
+        }
+      });
+      $("countWeek").textContent = count;
+
+      const grid = $("weekGrid");
+      grid.innerHTML = "";
+
+      for(let i=0;i<7;i++){
+        const dateDD = toDDMMYYYY(addDays(monday, i));
+        const row = weekMap.get(dateDD);
+
+        const div = document.createElement("div");
+        div.className = "day" + (dateDD === todayDD ? " today" : "") + (!row ? " empty" : "");
+
+        div.innerHTML = `
+          <div class="dow"><span class="bar"></span>${DOW[i]}</div>
+          <div class="date">${fmtHumanFromDDMMYYYY(dateDD)} <span class="mono">(${dateDD})</span></div>
+
+          <div class="place">${row?.lugar || "Sin entrenamiento"}</div>
+          <div class="coach">${row ? ("Encargado: " + (row.encargado || "—")) : ""}</div>
+
+          ${row?.actividad ? `<div class="activity">Actividad: ${row.actividad}</div>` : ""}
+          ${row?.nota ? `<div class="note">Nota: ${row.nota}</div>` : ""}
+        `;
+
+        grid.appendChild(div);
+      }
+    }
+
+    $("prevWeek").addEventListener("click", ()=>{ weekAnchor = addDays(weekAnchor, -7); render(); });
+    $("nextWeek").addEventListener("click", ()=>{ weekAnchor = addDays(weekAnchor, 7); render(); });
+    $("thisWeek").addEventListener("click", ()=>{ weekAnchor = new Date(); weekAnchor.setHours(0,0,0,0); render(); });
+    $("refresh").addEventListener("click", loadData);
+
+    loadData();
+  </script>
+</body>
+</html>
